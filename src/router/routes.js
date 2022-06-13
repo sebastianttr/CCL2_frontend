@@ -23,6 +23,10 @@ const routes = [
     ]
   },
   {
+    path: '/createService',
+    component: () => import('layouts/CreateServiceLayout.vue'),
+  },
+  {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue')
   }

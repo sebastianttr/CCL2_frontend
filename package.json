@@ -12,6 +12,7 @@
     "@quasar/extras": "^1.0.0",
     "axios": "^0.21.1",
     "core-js": "^3.6.5",
+    "js-cookie": "^3.0.1",
     "monaco-editor": "^0.33.0",
     "monaco-editor-webpack-plugin": "^7.0.1",
     "quasar": "^2.6.0",

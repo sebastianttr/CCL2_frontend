@@ -51,8 +51,10 @@
           </template>
         </q-input>
 
+        <p id="errorMessage">{{errorMsg}}</p>
+
         <div>
-          <q-btn class="submitButton" label="Login" type="submit" color="primary"/>
+          <q-btn class="submitButton" label="Login" type="submit" color="primary" v-on:click="loginWithData"/>
         </div>
 
         <div class="center">
@@ -65,19 +67,65 @@
 </template>
 
 <script>
+import { useQuasar } from 'quasar'
+import { Cookies } from 'quasar'
+
+Cookies.set('quasar', 'framework', {
+  secure: true
+})
+
 export default {
   name:"LoginLayout",
   data(){
     return {
       email:"",
       password:"",
+      errorMsg:"",
       isPwd:true
     }
   },
   methods:{
+    checkRoutingState(){
+      const $q = useQuasar()
+
+      if(this.$route.query.registeredUser){
+        $q.notify({
+          position: "top-right",
+          color:"primary",
+          message:this.$route.query.msg,
+          timeout:5000
+        })
+      }
+    },
+    loginWithData(){
+      fetch("http://localhost:3000/users/login",{
+        method:"POST",
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(
+          {
+            email:this.email,
+            password:this.password,
+          }
+        )
+      })
+      .then(res => res.text())
+      .then(data => {
+        const resData = JSON.parse(data);
+        if(resData.error){
+          this.errorMsg = "Email or password incorrect."
+        }else {
+          Cookies.set('accessToken', resData.accessToken);
+          this.$router.push("/")
+        }
+      })
+    },
 
   },
   created(){
+    this.checkRoutingState();
   }
 }
 </script>
@@ -144,6 +192,12 @@ export default {
 
 .submitButton{
   width: 400px;
+}
+
+#errorMessage{
+  font-weight: 700;
+  font-size: 16px;
+  color:rgb(181, 0, 0);
 }
 
 </style>

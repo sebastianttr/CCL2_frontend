@@ -22,7 +22,7 @@
       <h2>Brokr</h2>
       <h4> - Register - </h4>
       <q-form
-        @submit="onSubmit"
+        @submit="registerUser"
         @reset="onReset"
         class="q-gutter-md q-mt-xl text-center"
       >
@@ -61,6 +61,10 @@
           v-model="password"
           outlined
           :type="isPwd ? 'password' : 'text'"
+          :rules="[
+            val => val && val.length > 0 || 'Please type something',
+            val => val && val.length > 8 || 'Password has to be at least 8 characters long'
+          ]"
           hint="Password">
           <template v-slot:append>
             <q-icon
@@ -73,7 +77,7 @@
 
       <q-input
           class="passwordInput"
-          v-model="password"
+          v-model="rptPassword"
           outlined
           :type="isPwd ? 'password' : 'text'"
           hint="Repeat password">
@@ -87,7 +91,7 @@
         </q-input>
 
         <div>
-          <q-btn class="submitButton" label="Register" @click="$router.push('/')" type="submit" color="primary"/>
+          <q-btn class="submitButton" label="Register" type="submit" color="primary"/>
         </div>
 
       </q-form>
@@ -96,6 +100,7 @@
 </template>
 
 <script>
+
 export default {
   name:"LoginLayout",
   data(){
@@ -104,10 +109,69 @@ export default {
       firstName:"",
       lastName:"",
       password:"",
+      rptPassword:"",
       isPwd:true
     }
   },
-  created(){
+  methods: {
+    onReset(){
+
+    },
+    validateUserInput(){
+      //chech password
+      if(this.rptPassword == this.password){
+        return true;
+      }
+      else return false;
+    },
+    registerUser(){
+      let validationOK = this.validateUserInput();
+
+      if(validationOK){
+        fetch("http://localhost:3000/users/register",
+          {
+            headers: {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            method:"POST",
+            body: JSON.stringify(
+              {
+                email:this.email,
+                firstName:this.firstName,
+                lastName:this.lastName,
+                password:this.password,
+              }
+            )
+          }
+        )
+        .then(res => res.text())
+        .then(data => {
+          const resState = JSON.parse(data);
+          if(resState.success){
+            console.log("Success")
+            // route back to login
+            // tell login page that user was added and should show notification
+            this.$router.push(
+              {
+                path:"/login",
+                query:{
+                  registeredUser:true,
+                  msg:"New User has been registered. Please log in."
+                }
+              }
+            )
+          }
+          //console.log(resState);
+          //this.$router.push('/')
+        })
+        .catch(error => {
+          console.error(error);
+          //this.$router.push('/')
+        })
+
+      }
+    }
   }
 }
 </script>
@@ -139,6 +203,7 @@ export default {
 }
 
 .backButton{
+  z-index: 5;
   position: fixed;
   top:20px;
   left:20px;
