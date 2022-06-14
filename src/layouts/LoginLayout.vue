@@ -53,9 +53,9 @@
 
         <p id="errorMessage">{{errorMsg}}</p>
 
-        <div>
-          <q-btn class="submitButton" label="Login" type="submit" color="primary" v-on:click="loginWithData"/>
-        </div>
+        
+        <q-btn class="submitButton" label="Login" type="submit" color="primary" v-on:click="loginWithData"/>
+      
 
         <div class="center">
           No Brokr account? <a href="/#/register">Create a new account.</a>

@@ -56,6 +56,8 @@
 </template>
 
 <script>
+import { Cookies } from 'quasar';
+
 export default {
   name:"CreateServiceLayout",
   data(){
@@ -70,7 +72,33 @@ export default {
   },
   methods:{
     onSubmit(){
-      console.log("Hallo")
+      let accessToken = Cookies.get("accessToken")
+      if(accessToken){
+        //get user
+        fetch("http://localhost:3000/services/create",{
+          method:"POST",
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'Authorization':'bearer ' + accessToken
+          },
+          body:JSON.stringify({
+            serviceName:this.name,
+            description:this.description,
+            nodeVersion:this.nodeVersion
+          })
+        })
+        .then(res => res.text())
+        .then(data => {
+          this.$router.push("/ide")
+          //const resData = JSON.parse(data);
+          //this.userName = resData.firstName + " " + resData.lastName;
+        })
+      }
+      else {
+        // go to login page
+        this.$router.push("/login")
+      }
     }
   }
 }

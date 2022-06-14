@@ -118,7 +118,7 @@ export default defineComponent({
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',
-          'Authentication':'bearer ' + accessToken
+          'Authorization':'bearer ' + accessToken
         },
       })
       .then(res => res.text())
