@@ -45,7 +45,7 @@
               outlined
               v-model="nodeVersion"
               :options="nodeVerionsAvailable"
-              label="Outlined" />
+              label="Select version" />
 
             <q-btn class="submitButton" label="Login" type="submit" color="primary"/>
         </q-form>
@@ -90,7 +90,7 @@ export default {
         })
         .then(res => res.text())
         .then(data => {
-          this.$router.push("/ide")
+          this.$router.push({path:"/ide"})
           //const resData = JSON.parse(data);
           //this.userName = resData.firstName + " " + resData.lastName;
         })

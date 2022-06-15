@@ -7,17 +7,24 @@
         </div>
 
         <ul class="nested">
-            <node v-for="(child,index) in node.children" :key="index" :node="child"></node>
-            <div v-for="(content,index1) in node.content" :key="index1+1000" class="text-custom2 bgHover text-weight-light q-ma-xs">
+          <!-- show all directories first -->
+          <div v-for="(child,index) in node.children" :key="index">
+            <node v-if="child.type=='directory'" :node="child"></node>
+          </div>
+
+          <!-- then show all files  -->
+          <div v-for="(child,index) in node.children" :key="index + 1000">
+            <div v-if="child.type=='file'" class="text-custom2 bgHover text-weight-light q-ma-xs" @click="handleFileClick(child.path)">
               <span>
                   <q-img
-                    :src="getFileIconURL(content.fileName)"
+                    :src="getFileIconURL(child.name)"
                     class="q-mr-sm"
                     width="15px"
                     height="15px" />
-                  {{content.fileName}}
+                  {{child.name}}
               </span>
             </div>
+          </div>
         </ul>
     </li>
 </template>
@@ -42,9 +49,14 @@ export default {
       }
   },
   props: {
-    node: Object
+    node:Object,
+    onClick:{
+      type:Function
+    }
   },
   methods: {
+    handleFileClick(filePath){
+    },
     getFileIconURL(filename){
       let lastVal = filename.split(".").pop();
       if(iconSrc[lastVal] === undefined){
@@ -62,36 +74,8 @@ export default {
             //do nothing
         }
     },
-    handleFileClick(content){
-
-        console.log("handleClick")
-
-        console.log(JSON.stringify(content))
-
-        var token = localStorage.getItem('accessToken')
-
-        var myHeaders =  new Headers({
-            'Authorization': 'Bearer '+ token,
-        })
-
-        var requestOptions = {
-            method: 'GET',
-            headers: myHeaders,
-        };
-
-        fetch(`https://demo-bridge.gmail2ecm.com/getResource?filePath=${content.path}&fileName=${content.fileName}`,requestOptions)
-            .then(resp => resp.blob())
-            .then(blob => {
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = url;
-                a.download = content.fileName;
-                document.body.appendChild(a);
-                a.click();
-                window.URL.revokeObjectURL(url);
-            })
-            .catch((e) => console.log(e));
+    handleFileClick(filePath){
+        this.onClick(filePath);
     }
 
   },
@@ -117,8 +101,8 @@ export default {
   }
 
   .text-custom2{
-    font-size: 1em;
     user-select: none;
+    font-size: 1em;
   }
 
   #myUL {

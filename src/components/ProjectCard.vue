@@ -1,7 +1,7 @@
 <template>
   <div class="projectCard">
     <div class="projectTopBar full-width row wrap justify-between items-center content-start">
-      <h5>My Project</h5>
+      <h5>{{service.serviceName}}</h5>
       <div class="activityPoint"></div>
     </div>
     <div class="projectCardContent">
@@ -10,7 +10,7 @@
         outline
         color="green"
         label="Edit"
-        v-on:click="$router.push('editor/ide')"
+        v-on:click="navigateToIDEPage()"
       />
     </div>
 
@@ -18,15 +18,24 @@
 </template>
 
 <script>
+
 export default {
   name:"ProjectCard",
+  props:{
+    service:{
+      default:{},
+      required:true
+    }
+  },
   date(){
     return {
 
     }
   },
   methods:{
-
+    navigateToIDEPage(){
+      this.$router.push({name:'ide',params:{service:JSON.stringify(this.service)}})
+    }
   },
   beforeMount() {
 
