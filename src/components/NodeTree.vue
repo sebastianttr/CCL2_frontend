@@ -9,12 +9,12 @@
         <ul class="nested">
           <!-- show all directories first -->
           <div v-for="(child,index) in node.children" :key="index">
-            <node v-if="child.type=='directory'" :node="child"></node>
+            <node v-if="child.type=='directory'" :onClick="onClick" :node="child"></node>
           </div>
 
           <!-- then show all files  -->
           <div v-for="(child,index) in node.children" :key="index + 1000">
-            <div v-if="child.type=='file'" class="text-custom2 bgHover text-weight-light q-ma-xs" @click="handleFileClick(child.path)">
+            <div v-if="child.type=='file'" class="text-custom2 bgHover text-weight-light q-ma-xs" @click="handleFileClick(child)">
               <span>
                   <q-img
                     :src="getFileIconURL(child.name)"
@@ -55,8 +55,7 @@ export default {
     }
   },
   methods: {
-    handleFileClick(filePath){
-    },
+
     getFileIconURL(filename){
       let lastVal = filename.split(".").pop();
       if(iconSrc[lastVal] === undefined){
@@ -74,8 +73,8 @@ export default {
             //do nothing
         }
     },
-    handleFileClick(filePath){
-        this.onClick(filePath);
+    handleFileClick(file){
+        this.onClick(file);
     }
 
   },

@@ -112,6 +112,7 @@ export default {
         )
       })
       .then(res => res.text())
+      
       .then(data => {
         const resData = JSON.parse(data);
         if(resData.error){

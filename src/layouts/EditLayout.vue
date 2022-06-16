@@ -98,6 +98,8 @@
 <script>
 import { defineComponent, ref } from 'vue'
 import DrawerLinks from 'src/components/DrawerLinks.vue'
+import emitter from 'tiny-emitter/instance'
+
 
 const linksList = [
   {
@@ -135,25 +137,26 @@ export default defineComponent({
         {
           icon:"images/playButton.png",
           action: () => {
-
+            emitter.emit('runService')
           }
         },
         {
           icon:"images/repeatButton.png",
           action: () => {
-
+            // we will remove it.
+            emitter.emit('reRunService')
           }
         },
         {
           icon:"images/haltButton.png",
           action: () => {
-
+            emitter.emit('stopService')
           }
         },
         {
           icon:"images/terminalButton.png",
           action: () => {
-
+            // something idk
           }
         },
       ]
