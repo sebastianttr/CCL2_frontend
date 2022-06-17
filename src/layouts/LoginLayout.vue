@@ -22,7 +22,7 @@
       <h2>Brokr</h2>
       <h4> - Login - </h4>
       <q-form
-        @submit="onSubmit"
+        @submit="loginWithData"
         @reset="onReset"
         class="q-gutter-md q-mt-xl text-center"
       >
@@ -53,9 +53,7 @@
 
         <p id="errorMessage">{{errorMsg}}</p>
 
-        
-        <q-btn class="submitButton" label="Login" type="submit" color="primary" v-on:click="loginWithData"/>
-      
+        <q-btn class="submitButton" label="Login" type="submit" color="primary"/>
 
         <div class="center">
           No Brokr account? <a href="/#/register">Create a new account.</a>
@@ -98,6 +96,7 @@ export default {
       }
     },
     loginWithData(){
+
       fetch("http://localhost:3000/users/login",{
         method:"POST",
         headers: {
@@ -112,12 +111,12 @@ export default {
         )
       })
       .then(res => res.text())
-      
       .then(data => {
         const resData = JSON.parse(data);
         if(resData.error){
           this.errorMsg = "Email or password incorrect."
         }else {
+          Cookies.remove("accessToken")
           Cookies.set('accessToken', resData.accessToken);
           this.$router.push("/")
         }

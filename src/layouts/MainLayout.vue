@@ -157,7 +157,6 @@ p {
     rgba(29, 175, 79, 1) 0%,
     rgba(184, 252, 187, 1) 140%
   );
-  border-radius: 0px 30px 30px 0px;
 }
 
 .toobarTitle {

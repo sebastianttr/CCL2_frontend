@@ -29,7 +29,7 @@
           class="q-mr-sm  "
           @click="item.action">
           <q-img
-            :src="item.icon"
+            :src="(item.alternateIcon && state == 'running')?item.alternateIcon:item.icon"
             style="transform: scale(0.6);"
           />
         </q-btn>
@@ -133,30 +133,28 @@ export default defineComponent({
   },
   data(){
     return {
+      state: "stopped",
       toolbarActions:[
         {
           icon:"images/playButton.png",
+          alternateIcon:"images/repeatButton.png",
           action: () => {
             emitter.emit('runService')
-          }
-        },
-        {
-          icon:"images/repeatButton.png",
-          action: () => {
-            // we will remove it.
-            emitter.emit('reRunService')
+            this.state = "running";
           }
         },
         {
           icon:"images/haltButton.png",
           action: () => {
             emitter.emit('stopService')
+            this.state = "stop";
           }
         },
         {
           icon:"images/terminalButton.png",
           action: () => {
             // something idk
+            emitter.emit('terminal')
           }
         },
       ]
@@ -176,6 +174,11 @@ export default defineComponent({
 })
 </script>
 <style>
+
+.q-layout-header {height: 1px}
+.q-layout {height: 1px}
+
+
 p{
   margin: 0;
 }
@@ -183,7 +186,6 @@ p{
 .drawer{
   background: #1daf4f;
   background: linear-gradient(180deg, rgba(29,175,79,1) 0%, rgba(184,252,187,1) 140%);
-  border-radius: 0px 30px 30px 0px;
 }
 
 .toobarTitle{

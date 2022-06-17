@@ -14,7 +14,13 @@
           <h5>Select a file to begin coding</h5>
         </div>
         <div id="editor"></div>
-        <div id="console"></div>
+        <div id="console">
+          <div class="terminalActions">
+            <q-btn color="white" flat round icon="close" @click="closeTerminal" />
+          </div>
+          <input id="consoleInput" type="text" autocomplete="off" placeholder="Enter into the console">
+          <p id="consoleContent"></p>
+        </div>
       </div>
     </section>
   </div>
@@ -83,10 +89,20 @@ export default {
       editor: null,
       userSaved:false,
       currentFilePath:"",
-      ws:null
+      ws:null,
+      counter: 1
     };
   },
   methods:{
+    showTerminal(){
+      document.getElementById("console").style.display = "block";
+    },
+    closeTerminal(){
+      document.getElementById("console").style.display = "none";
+    },
+    clearTerminal(){
+      document.getElementById("consoleContent").innerHTML = "";
+    },
     sendFileContent(path,content){
       let accessToken = Cookies.get("accessToken")
 
@@ -211,14 +227,117 @@ export default {
     },
     attachActionsEventHandler(){
       emitter.on("runService",() => {
-        console.log("run the service")
+        if(!this.ws){
+          this.initWebsocket();
+          this.startService();
+          this.showTerminal();
+        }
+        else {
+          //this.ws = null;
+          this.clearTerminal();
+          this.writeToConsole("Restarting service ... \n")
+          this.stopService();
+          this.startService();
+          this.showTerminal();
+        }
         // create a WebSocket connection to show the console ... oh boy amiright
       })
-
       emitter.on("stopService",() => {
-        console.log("stop the service")
+        this.clearTerminal();
+        this.closeTerminal();
+
+        if(this.ws){
+          this.stopService();
+        }
+
       })
+
+      emitter.on("terminal",() => {
+        document.getElementById("console").style.display = "block";
+      })
+    },
+    initWebsocket(){
+      let accessToken = Cookies.get("accessToken");
+
+      this.ws = new WebSocket("ws://localhost:4200");
+      //this.showTerminal();
+      //this.clearTerminal();
+
+      /*
+      this.ws.onopen = (e) => {
+        this.startService();
+      }
+      */
+
+      this.ws.onmessage = (e) => {
+        this.writeToConsole(e.data);
+      }
+    },
+    writeToConsole(data){
+      let el = document.getElementById("consoleContent");
+      el.scrollTop = el.scrollHeight;
+      el.innerHTML = el.innerHTML + data + "<br>";
+    },
+    removeEvListener(){
+      document.removeEventListener("keydown",this.handleDownEvent)
+      emitter.off("runService");
+      emitter.off("stopService");
+      emitter.off("terminal");
+    },
+    setupConsole(){
+      let v = this;
+      const el =  document.getElementById("consoleInput")
+      el.onkeydown = (e) => {
+          console.log()
+          if(e.key == "Enter"){
+            v.writeToConsole(" > " + el.value)
+            let accessToken = Cookies.get("accessToken")
+
+            if(v.ws.readyState === WebSocket.OPEN){
+                v.ws.send(JSON.stringify(
+                  {
+                      "accessToken":"bearer " + accessToken,
+                      "action":{
+                          "type":"shellCommand",
+                          "serviceID":v.service.ID,
+                          "command":el.value
+                      }
+                  }
+                ))
+
+                el.value = "";
+              }
+          }
+
+      }
+    },
+    startService(){
+      let accessToken = Cookies.get("accessToken");
+
+      this.ws.send(JSON.stringify(
+          {
+              "accessToken":"bearer " + accessToken,
+              "action":{
+                  "type":"runService",
+                  "serviceID":this.service.ID
+              }
+          }
+        ));
+    },
+    stopService(){
+      let accessToken = Cookies.get("accessToken");
+
+      this.ws.send(JSON.stringify(
+            {
+                "accessToken":"bearer " + accessToken,
+                "action":{
+                    "type":"stopService",
+                    "serviceID":this.service.ID
+                }
+            }
+          ))
     }
+
   },
   mounted() {
     if(this.$route.params.service == undefined){
@@ -229,18 +348,21 @@ export default {
     this.renderMonacoEditor();
     this.setupKeyboardShortcuts();
     this.attachActionsEventHandler();
+    this.initWebsocket();
+    this.setupConsole();
   },
   beforeRouteLeave(to,from,next){
     if(!this.userSaved){
       const answer = window.confirm('Do you really want to leave? you have unsaved changes!')
       if (answer) {
-        document.removeEventListener("keydown",this.handleDownEvent)
+        this.removeEvListener();
         sessionStorage.clear();
         next();
       } else {
         next(false);
       }
     }else {
+      this.removeEvListener();
       sessionStorage.clear();
       next();
     }
@@ -255,13 +377,13 @@ export default {
 
 <style>
 
-
 .editorSection {
   display: flex;
   justify-content: flex-start;
   flex-direction: row;
+  flex-basis: 100%;
   width: 100%;
-  height: 100%;
+  height: calc(100vh - 70px);
 }
 
 .folderTree {
@@ -272,13 +394,11 @@ export default {
 }
 
 #editor {
-  width: 102%;
-  height: 100vh;
   margin: 0;
   padding: 0;
   background-color: rgb(19, 19, 19);
   color:aqua;
-  overflow-y: scroll;
+  height:100%;
 }
 
 ul,
@@ -312,17 +432,45 @@ ul,
 }
 
 #console{
+  display: none;
   position: absolute;
   background-color: rgb(32, 32, 32);
   bottom:0;
-  height: 30%;
+  height: 35%;
   width: 100%;
-  z-index: 2;
+  z-index: 3;
   border-top: solid 1px rgb(67, 67, 67);
 }
 
+#console > input {
+  margin: 10px 20px 0px 10px;
+  background-color: rgb(67, 67, 67);
+  border: none;
+  color:white;
+  width: 92%;
+  font-family: monospace;
+}
+
+#consoleContent{
+  color:white;
+  height: 100%;
+  overflow-y: scroll;
+  font-family: monospace;
+  padding: 0;
+  margin: 10px 50px 40px 10px;
+  font-size: 15px;
+}
+
+.terminalActions{
+  position: absolute;
+  right:0;
+  margin:5px;
+}
+
+
+
 .page {
   background-color: rgb(32, 32, 32);
-  overflow: hidden;
+  overflow:hidden;
 }
 </style>

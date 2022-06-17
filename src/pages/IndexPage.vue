@@ -1,7 +1,7 @@
 <template>
   <q-page>
     <section class="recentProjectsSection">
-      <h3>Recent Projects</h3>
+      <h3>My Projects</h3>
       <div class="projectsContainer fit row wrap justify-start items-start content-start">
         <projectcard
           v-for="item,index in services"
@@ -42,9 +42,6 @@ export default {
     return {
       services:[]
     }
-  },
-  beforeMount(){
-    console.log(this.getServices)
   },
   beforeMount(){
     let accessToken = Cookies.get("accessToken")
