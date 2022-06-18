@@ -7,54 +7,21 @@
             <q-menu
               touch-position
               context-menu
+              dark
             >
-
               <q-list dense style="min-width: 100px">
-                <q-item clickable v-close-popup>
-                  <q-item-section>Open...</q-item-section>
+                <q-item @click="onNewFile?.(node.path)" clickable v-close-popup>
+                  <q-item-section>New File</q-item-section>
                 </q-item>
-                <q-item clickable v-close-popup>
-                  <q-item-section>New</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable>
-                  <q-item-section>Preferences</q-item-section>
-                  <q-item-section side>
-                    <q-icon name="keyboard_arrow_right" />
-                  </q-item-section>
-
-                  <q-menu anchor="top end" self="top start">
-                    <q-list>
-                      <q-item
-                        v-for="n in 3"
-                        :key="n"
-                        dense
-                        clickable
-                      >
-                        <q-item-section>Submenu Label</q-item-section>
-                        <q-item-section side>
-                          <q-icon name="keyboard_arrow_right" />
-                        </q-item-section>
-                        <q-menu auto-close anchor="top end" self="top start">
-                          <q-list>
-                            <q-item
-                              v-for="n in 3"
-                              :key="n"
-                              dense
-                              clickable
-                            >
-                              <q-item-section>3rd level Label</q-item-section>
-                            </q-item>
-                          </q-list>
-                        </q-menu>
-                      </q-item>
-                    </q-list>
-                  </q-menu>
-
+                <q-item @click="onNewFolder?.(node.path)" clickable v-close-popup>
+                  <q-item-section>New Folder</q-item-section>
                 </q-item>
                 <q-separator />
-                <q-item clickable v-close-popup>
-                  <q-item-section>Quit</q-item-section>
+                <q-item @click="onRename?.(node.path)" clickable v-close-popup>
+                  <q-item-section>Rename</q-item-section>
+                </q-item>
+                <q-item @click="onRemove?.(node.path)" clickable v-close-popup>
+                  <q-item-section>Remove</q-item-section>
                 </q-item>
               </q-list>
 
@@ -64,7 +31,18 @@
         <ul class="nested">
           <!-- show all directories first -->
           <div v-for="(child,index) in node.children" :key="index">
-            <node v-if="child.type=='directory'" :onClick="onClick" :node="child"></node>
+            <node
+              v-if="child.type=='directory'"
+              :onClick="onClick"
+              :node="child"
+              :onRemove="onRemove || null"
+              :onRename="onRename || null"
+              :onNewFile="onNewFile || null"
+              :onNewFolder="onNewFolder || null"
+              :onRenameFile="onRenameFile || null"
+              :onRemoveFile="onRemoveFile || null"
+            >
+            </node>
           </div>
 
           <!-- then show all files  -->
@@ -78,6 +56,20 @@
                     height="15px" />
                   {{child.name}}
               </span>
+               <q-menu
+                    touch-position
+                    context-menu
+                    dark
+                  >
+                    <q-list dense style="min-width: 100px">
+                      <q-item @click="onRenameFile?.(node.path + '/' + child.name)" clickable v-close-popup>
+                        <q-item-section>Rename</q-item-section>
+                      </q-item>
+                      <q-item @click="onRemoveFile?.(node.path + '/' + child.name)" clickable v-close-popup>
+                        <q-item-section>Remove</q-item-section>
+                      </q-item>
+                    </q-list>
+                  </q-menu>
             </div>
           </div>
         </ul>
@@ -106,11 +98,28 @@ export default {
   props: {
     node:Object,
     onClick:{
-      type:Function
-    }
+      type:Function,
+    },
+    onNewFile:{
+      type: Function,
+    },
+    onNewFolder:{
+      type: Function,
+    },
+    onRename:{
+      type: Function,
+    },
+    onRemove:{
+      type: Function,
+    },
+    onRenameFile:{
+      type: Function,
+    },
+    onRemoveFile:{
+      type: Function,
+    },
   },
   methods: {
-
     getFileIconURL(filename){
       let lastVal = filename.split(".").pop();
       if(iconSrc[lastVal] === undefined){
@@ -130,8 +139,7 @@ export default {
     },
     handleFileClick(file){
         this.onClick(file);
-    }
-
+    },
   },
 };
 </script>

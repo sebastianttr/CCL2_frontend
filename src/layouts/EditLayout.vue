@@ -175,8 +175,6 @@ export default defineComponent({
 </script>
 <style>
 
-.q-layout-header {height: 1px}
-.q-layout {height: 1px}
 
 
 p{

@@ -1,11 +1,22 @@
 <template>
   <div class="page">
-    <editortab></editortab>
+    <!--
+      <editortab></editortab>
+    -->
 
     <section class="editorSection">
       <div class="folderTree">
         <ul id="myUL">
-          <nodetree :node="tree" :onClick="handleFileClick"></nodetree>
+          <nodetree
+            :node="tree"
+            :onClick="handleFileClick"
+            :onRemove="onRemoveSelect"
+            :onRename="onRenameSelect"
+            :onNewFile="onNewFileSelect"
+            :onNewFolder="onNewFolderSelect"
+            :onRemoveFile="onRemoveFileSelect"
+            :onRenameFile="onRenameFileSelect"
+          ></nodetree>
         </ul>
       </div>
       <div class="editorContainer">
@@ -23,15 +34,50 @@
         </div>
       </div>
     </section>
+
+  <!-- Create new  -->
+  <div v-for="(item,index) in Object.keys(dialogs)" :key="index">
+    {{dialogs[item]}}
+     <inputmodeldialog
+      v-if="dialogs[item].model != undefined"
+      :model="dialogs[item].state"
+      :title="dialogs[item].title"
+      :text="dialogs[item].text"
+      inputPlaceholder="Enter here"
+      :inputModel="dialogs[item].model"
+      confirmText="OK"
+      :onCancel="() => dialogs[item].state = false"
+      :onConfirm="dialogs[item].onConfirm"
+      >
+    </inputmodeldialog>
+    <confirmationdialog
+      v-else
+      :model="dialogs[item].state"
+      :title="dialogs[item].title"
+      :text="dialogs[item].text"
+      confirmText="OK"
+      :onCancel="() => {
+        dialogs[item].state = false;
+        delete dialogs[item].path;
+      }"
+      :onConfirm="dialogs[item].onConfirm"
+      >
+    </confirmationdialog>
+
+  </div>
+
   </div>
 </template>
 
 <script>
 import EditorTab from "src/components/EditorTab.vue";
+import InputModelDialog from "src/components/dialogs/InputModelDialog.vue";
+import ConfirmationDialog from "src/components/dialogs/ConfirmationDialog.vue";
 import * as monaco from "monaco-editor";
 import NodeTree from "src/components/NodeTree.vue";
 import { Cookies,useQuasar } from 'quasar';
-import emitter from 'tiny-emitter/instance'
+import emitter from 'tiny-emitter/instance';
+
 
 const nodetree = {
   name: "Folder 1",
@@ -82,6 +128,8 @@ export default {
   components: {
     editortab: EditorTab,
     nodetree: NodeTree,
+    inputmodeldialog: InputModelDialog,
+    confirmationdialog: ConfirmationDialog
   },
   data() {
     return {
@@ -90,10 +138,58 @@ export default {
       userSaved:false,
       currentFilePath:"",
       ws:null,
-      counter: 1
+      dialogs:{
+        newFile:{
+          state:false,
+          model:"",
+          title:"Create new file",
+          text:"Enter the name of the new file",
+          path:"",
+          onConfirm: this.createNewFile
+        },
+        newFolder:{
+          state:false,
+          model:"",
+          title:"Create new folder",
+          text:"Enter the name of the new folder",
+          onConfirm: this.createNewFolder
+        },
+        renameFolder:{
+          state:false,
+          model:"",
+          title:"Rename folder",
+          text:"Enter a new name",
+          onConfirm: this.renameFolder
+        },
+        removeFolder:{
+          state:false,
+          title:"Are your sure?",
+          text:"Are you sure you want to remove the folder with all its content?",
+          onConfirm: this.removeFolder
+        },
+        renameFile:{
+          state:false,
+          model:"",
+          title:"Rename file",
+          text:"Enter a new name",
+          onConfirm: this.renameFile
+        },
+        removeFile:{
+          state:false,
+          title:"Are your sure?",
+          text:"Are you sure you want to remove the file with all its content?",
+          onConfirm: this.removeFile
+        }
+      }
     };
   },
   methods:{
+
+
+    /********************************************************************************* */
+    /*                            Terminal/Console Methods                             */
+    /********************************************************************************* */
+
     showTerminal(){
       document.getElementById("console").style.display = "block";
     },
@@ -103,6 +199,31 @@ export default {
     clearTerminal(){
       document.getElementById("consoleContent").innerHTML = "";
     },
+    writeToConsole(data){
+      let el = document.getElementById("consoleContent");
+      el.scrollTop = el.scrollHeight;
+      el.innerHTML = el.innerHTML + data + "<br>";
+    },
+    setupConsole(){
+      let v = this;
+      const el =  document.getElementById("consoleInput")
+      el.onkeydown = (e) => {
+          console.log()
+          if(e.key == "Enter"){
+            v.writeToConsole(" > " + el.value)
+
+            if(v.ws.readyState === WebSocket.OPEN){
+                this.transmitCommand(el.value);
+                el.value = "";
+              }
+          }
+      }
+    },
+
+    /********************************************************************************* */
+    /*                            Code Editor Methods                                  */
+    /********************************************************************************* */
+
     sendFileContent(path,content){
       let accessToken = Cookies.get("accessToken")
 
@@ -139,24 +260,6 @@ export default {
           console.log("Fetch Error: " + error)
         })
     },
-
-    handleFileClick(file){
-      this.currentFilePath = file.path;
-      // get file content -> check if session storage has that file
-      if(sessionStorage.getItem(file.path) == null){
-        this.fetchFileContent(file.path,(text => {
-          // save it in the session storage
-          sessionStorage.setItem(file.path,text);
-          // change editor content
-          this.setEditorModel(text,extensionToLanguage(file.extension));
-        }))
-      }
-      else{   // if content is stored inside it already
-        const contentFromPath = sessionStorage.getItem(file.path);
-        //console.log(contentFromPath)
-        this.setEditorModel(contentFromPath,extensionToLanguage(file.extension));
-      }
-    },
     setEditorModel(code,language){
       window.editor.getModel().setValue(code);
       monaco.editor.setModelLanguage(window.editor.getModel(),language);
@@ -175,6 +278,33 @@ export default {
           v.userSaved = false;
           v.saveCurrentCodeSessionStorage();
       });
+    },
+    saveCurrentCodeSessionStorage(){
+      const code = window.editor.getModel().getValue();
+      sessionStorage.setItem(this.currentFilePath,code);
+    },
+
+
+    /********************************************************************************* */
+    /*                            Directory Tree Methods                               */
+    /********************************************************************************* */
+
+    handleFileClick(file){
+      this.currentFilePath = file.path;
+      // get file content -> check if session storage has that file
+      if(sessionStorage.getItem(file.path) == null){
+        this.fetchFileContent(file.path,(text => {
+          // save it in the session storage
+          sessionStorage.setItem(file.path,text);
+          // change editor content
+          this.setEditorModel(text,extensionToLanguage(file.extension));
+        }))
+      }
+      else{   // if content is stored inside it already
+        const contentFromPath = sessionStorage.getItem(file.path);
+        //console.log(contentFromPath)
+        this.setEditorModel(contentFromPath,extensionToLanguage(file.extension));
+      }
     },
     fetchDirectoryTree(){
       //console.log(this.service)
@@ -197,12 +327,130 @@ export default {
           })
       }
     },
+
+    onNewFileSelect(path){
+      this.dialogs.newFile.state = true;
+      this.dialogs.newFile.path = path;
+    },
+    onNewFolderSelect(path){
+      this.dialogs.newFolder.state = true;
+      this.dialogs.newFolder.path = path;
+    },
+    onRenameSelect(path){
+      this.dialogs.renameFolder.state = true;
+      this.dialogs.renameFolder.path = path;
+    },
+    onRemoveSelect(path){
+      this.dialogs.removeFolder.state = true;
+      this.dialogs.removeFolder.path = path;
+    },
+    onRemoveFileSelect(path){
+      console.log(path)
+      this.dialogs.removeFile.state = true;
+      this.dialogs.removeFile.path = path;
+    },
+    onRenameFileSelect(path){
+      this.dialogs.renameFile.state = true;
+      this.dialogs.renameFile.path = path;
+    },
+
+    // this is made to work for the backend on macOS, can be changed in unix
+    // Attention: cwd in backend it this.service.servicePath, so remove it to make it work
+    getRelativePath(oldPath,action){
+      const servicePath = this.service.servicePath.replace("/","")
+      return (oldPath || this.dialogs[action].path)
+        .replace(servicePath,"")
+        .replace("/","");
+    },
+
+    createNewFolder(name,path){
+      path = this.getRelativePath(path,"newFolder");
+
+      // send command
+      this.transmitCommand("mkdir " + path.replace("./","") + "/" + name)
+      // update directory , but delayed because it is not that fast .... lazy fix amirit
+      setTimeout(() => {
+        this.fetchDirectoryTree();
+      },100)
+
+      delete this.dialogs.newFolder.path;
+      this.dialogs.newFolder.state = false;
+
+    },
+    createNewFile(name, path){
+      path = this.getRelativePath(path,"newFile");
+
+      // send command
+      this.transmitCommand('echo "" > ' + path.replace("./","") + "/" + name)
+      // update directory , but delayed because it is not that fast .... lazy fix amirit
+      setTimeout(() => {
+        this.fetchDirectoryTree();
+      },100)
+
+      delete this.dialogs.newFile.path;
+      this.dialogs.newFile.state = false;
+
+    },
+    renameFolder(name, path){
+      path = this.getRelativePath(path,"renameFolder");
+
+      delete this.dialogs.removeFolder.path;
+      this.dialogs.removeFolder.state = false;
+    },
+    renameFile(name, path){
+      path = this.getRelativePath(path,"renameFile");
+
+      delete this.dialogs.renameFile.path;
+      this.dialogs.renameFile.state = false;
+    },
+    removeFolder(name, path){
+      path = this.getRelativePath(path,"removeFolder");
+
+      // if do, then it is the root so do not delete it!
+      if(path != "."){
+        // send command
+        this.transmitCommand("rm -rf " + path.replace("./",""))
+        // update directory , but delayed because it is not that fast .... lazy fix amirit
+        setTimeout(() => {
+          this.fetchDirectoryTree();
+        },100)
+
+      }
+      else{
+        this.$q.notify({
+          position: "bottom-right",
+          progress:true,
+          color:"red",
+          message:"You cannot delete the root folder!",
+          timeout:1500
+        })
+      }
+
+      delete this.dialogs.removeFolder.path;
+      this.dialogs.removeFolder.state = false;
+    },
+    removeFile(name,path){
+      console.log("Remove file!")
+
+      path = this.getRelativePath(path,"removeFile");
+
+      this.transmitCommand("rm -rf " + path.replace("./",""))
+
+      setTimeout(() => {
+          this.fetchDirectoryTree();
+        },100)
+
+      delete this.dialogs.removeFile.path;
+      this.dialogs.removeFile.state = false;
+    },
+
+
+    /********************************************************************************* */
+    /*                            Event Listener Methods                               */
+    /********************************************************************************* */
+
     setupKeyboardShortcuts(){
       document.addEventListener("keydown",this.handleDownEvent)
-    },
-    saveCurrentCodeSessionStorage(){
-      const code = window.editor.getModel().getValue();
-      sessionStorage.setItem(this.currentFilePath,code);
     },
     async handleDownEvent(event){
       if((event.ctrlKey||event.metaKey) && event.key === 's'){
@@ -256,61 +504,41 @@ export default {
         document.getElementById("console").style.display = "block";
       })
     },
-    initWebsocket(){
-      let accessToken = Cookies.get("accessToken");
-
-      this.ws = new WebSocket("ws://localhost:4200");
-      //this.showTerminal();
-      //this.clearTerminal();
-
-      /*
-      this.ws.onopen = (e) => {
-        this.startService();
-      }
-      */
-
-      this.ws.onmessage = (e) => {
-        this.writeToConsole(e.data);
-      }
-    },
-    writeToConsole(data){
-      let el = document.getElementById("consoleContent");
-      el.scrollTop = el.scrollHeight;
-      el.innerHTML = el.innerHTML + data + "<br>";
-    },
     removeEvListener(){
       document.removeEventListener("keydown",this.handleDownEvent)
       emitter.off("runService");
       emitter.off("stopService");
       emitter.off("terminal");
     },
-    setupConsole(){
-      let v = this;
-      const el =  document.getElementById("consoleInput")
-      el.onkeydown = (e) => {
-          console.log()
-          if(e.key == "Enter"){
-            v.writeToConsole(" > " + el.value)
-            let accessToken = Cookies.get("accessToken")
 
-            if(v.ws.readyState === WebSocket.OPEN){
-                v.ws.send(JSON.stringify(
-                  {
-                      "accessToken":"bearer " + accessToken,
-                      "action":{
-                          "type":"shellCommand",
-                          "serviceID":v.service.ID,
-                          "command":el.value
-                      }
-                  }
-                ))
+    /********************************************************************************* */
+    /*                            Service/WebSocket Methods                            */
+    /********************************************************************************* */
+    initWebsocket(){
+      let accessToken = Cookies.get("accessToken");
 
-                el.value = "";
-              }
-          }
+      this.ws = new WebSocket("ws://localhost:4200");
 
+      this.ws.onmessage = (e) => {
+        this.writeToConsole(e.data);
       }
     },
+
+    transmitCommand(command){
+      let accessToken = Cookies.get("accessToken")
+
+      this.ws.send(JSON.stringify(
+        {
+            "accessToken":"bearer " + accessToken,
+            "action":{
+                "type":"shellCommand",
+                "serviceID":  this.service.ID,
+                "command":  command
+            }
+        }
+      ))
+    },
+
     startService(){
       let accessToken = Cookies.get("accessToken");
 
@@ -383,7 +611,7 @@ export default {
   flex-direction: row;
   flex-basis: 100%;
   width: 100%;
-  height: calc(100vh - 70px);
+  height: calc(100vh - 50px);
 }
 
 .folderTree {
@@ -434,6 +662,7 @@ ul,
 #console{
   display: none;
   position: absolute;
+  padding-bottom:50px;
   background-color: rgb(32, 32, 32);
   bottom:0;
   height: 35%;

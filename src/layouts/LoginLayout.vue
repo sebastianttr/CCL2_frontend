@@ -96,7 +96,6 @@ export default {
       }
     },
     loginWithData(){
-
       fetch("http://localhost:3000/users/login",{
         method:"POST",
         headers: {

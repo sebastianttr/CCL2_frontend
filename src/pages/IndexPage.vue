@@ -60,9 +60,6 @@ export default {
         this.services = JSON.parse(data);
       })
     }
-
-    //nothing else if there is no access token
-
   },
   methods:{
     createNewService(){
