@@ -24,8 +24,8 @@
 
     <q-page-sticky position="bottom-right" :offset="[18, 18]">
       <q-fab color="primary" icon="add" direction="up">
-        <q-fab-action external-label label="New Service" label-position="left" color="primary" @click="createNewService" icon="mail" />
-        <q-fab-action external-label label="New Document" label-position="left" color="secondary" @click="createNewDocument" icon="alarm" />
+        <q-fab-action external-label label="New Service" label-position="left" color="primary" icon="img:images/serverRack.png" @click="createNewService" />
+        <q-fab-action external-label label="New Document" label-position="left" color="primary" icon="img:images/docSheet.png" @click="createNewDocument" />
       </q-fab>
     </q-page-sticky>
   </q-page>

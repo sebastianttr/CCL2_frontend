@@ -54,7 +54,7 @@
           />
           <div class="full-width row wrap justify-between items-start">
             <div>
-              <p id="title">John Doe</p>
+              <p id="title">{{userName}}</p>
               <q-btn
                 outline
                 color="black"
@@ -73,7 +73,7 @@
                 spinner-color="primary"
                 spinner-size="82px"
                 width="28px"
-                v-on:click="$router.push('/login')"
+                v-on:click="logout()"
               />
             </q-btn>
           </div>
@@ -81,9 +81,10 @@
 
         <div class="links">
           <DrawerLinks
-            v-for="link in essentialLinks"
+            v-for="link in linksList"
             :key="link.title"
             v-bind="link"
+            @click="link.onClick"
           />
         </div>
       </q-list>
@@ -99,30 +100,7 @@
 import { defineComponent, ref } from 'vue'
 import DrawerLinks from 'src/components/DrawerLinks.vue'
 import emitter from 'tiny-emitter/instance'
-
-
-const linksList = [
-  {
-    title: "Home",
-    icon: "images/homeIcon.png",
-    link: "https://quasar.dev",
-  },
-  {
-    title: "Services",
-    icon: "images/serverRack.png",
-    link: "https://github.com/quasarframework",
-  },
-  {
-    title: "Docs",
-    icon: "images/docSheet.png",
-    link: "https://chat.quasar.dev",
-  },
-  {
-    title: "Settings",
-    icon: "images/settingsIcon.png",
-    link: "https://forum.quasar.dev",
-  },
-];
+import { Cookies } from 'quasar';
 
 
 export default defineComponent({
@@ -134,6 +112,7 @@ export default defineComponent({
   data(){
     return {
       state: "stopped",
+      userName:"Not logged in!",
       toolbarActions:[
         {
           icon:"images/playButton.png",
@@ -157,14 +136,75 @@ export default defineComponent({
             emitter.emit('terminal')
           }
         },
+      ],
+      linksList:[
+        {
+          title: "Home",
+          icon: "images/homeIcon.png",
+          link: "https://quasar.dev",
+          onClick: () => {
+            this.$router.push("/");
+          }
+        },
+        {
+          title: "Services",
+          icon: "images/serverRack.png",
+          link: "https://github.com/quasarframework",
+          onClick: () => {
+            this.$router.push("/");
+          }
+        },
+        {
+          title: "Docs",
+          icon: "images/docSheet.png",
+          link: "https://chat.quasar.dev",
+          onClick: () => {
+            this.$router.push("/");
+          }
+        },
+        {
+          title: "Settings",
+          icon: "images/settingsIcon.png",
+          link: "https://forum.quasar.dev",
+          onClick: () => {
+            this.$router.push("/settings");
+          }
+        },
       ]
+    }
+  },
+  methods:{
+    logout(){
+      Cookies.remove("accessToken")
+      this.$router.push('/login')
+    }
+  },
+  beforeMount(){
+    let accessToken = Cookies.get("accessToken")
+    if(accessToken){
+      //get user
+      fetch("http://localhost:3000/users/getUser",{
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json',
+          'Authorization':'bearer ' + accessToken
+        },
+      })
+      .then(res => res.text())
+      .then(data => {
+        const resData = JSON.parse(data);
+        this.userName = resData.firstName + " " + resData.lastName;
+      })
+    }
+    else {
+      // go to login page
+      this.$router.push("/login")
     }
   },
   setup () {
     const leftDrawerOpen = ref(false)
 
     return {
-      essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer () {
         leftDrawerOpen.value = !leftDrawerOpen.value

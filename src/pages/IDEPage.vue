@@ -37,7 +37,6 @@
 
   <!-- Create new  -->
   <div v-for="(item,index) in Object.keys(dialogs)" :key="index">
-    {{dialogs[item]}}
      <inputmodeldialog
       v-if="dialogs[item].model != undefined"
       :model="dialogs[item].state"
@@ -208,7 +207,6 @@ export default {
       let v = this;
       const el =  document.getElementById("consoleInput")
       el.onkeydown = (e) => {
-          console.log()
           if(e.key == "Enter"){
             v.writeToConsole(" > " + el.value)
 
@@ -345,7 +343,6 @@ export default {
       this.dialogs.removeFolder.path = path;
     },
     onRemoveFileSelect(path){
-      console.log(path)
       this.dialogs.removeFile.state = true;
       this.dialogs.removeFile.path = path;
     },
@@ -430,7 +427,6 @@ export default {
       this.dialogs.removeFolder.state = false;
     },
     removeFile(name,path){
-      console.log("Remove file!")
 
       path = this.getRelativePath(path,"removeFile");
 

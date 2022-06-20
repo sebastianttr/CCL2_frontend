@@ -34,6 +34,11 @@ const routes = [
     component: () => import('layouts/CreateServiceLayout.vue'),
   },
   {
+    name:"settings",
+    path: '/settings',
+    component: () => import('layouts/SettingsLayout.vue'),
+  },
+  {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue')
   }

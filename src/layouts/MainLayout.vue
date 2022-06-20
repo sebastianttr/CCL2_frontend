@@ -5,7 +5,6 @@
         <q-btn flat round color="primary" aria-label="Menu" @click="toggleLeftDrawer">
           <q-img
             src="images/drawerbutton.png"
-            :ratio="16 / 9"
             spinner-color="primary"
             spinner-size="82px"
             width="32px"
@@ -53,7 +52,12 @@
         </section>
 
         <div class="links">
-          <DrawerLinks v-for="link in essentialLinks" :key="link.title" v-bind="link" />
+          <DrawerLinks
+            v-for="link in linksList"
+            :key="link.title"
+            v-bind="link"
+            @click="link.onClick"
+          />
         </div>
       </q-list>
     </q-drawer>
@@ -70,28 +74,6 @@ import DrawerLinks from "src/components/DrawerLinks.vue";
 import { Cookies } from 'quasar';
 
 
-const linksList = [
-  {
-    title: "Home",
-    icon: "images/homeIcon.png",
-    link: "https://quasar.dev",
-  },
-  {
-    title: "Services",
-    icon: "images/serverRack.png",
-    link: "https://github.com/quasarframework",
-  },
-  {
-    title: "Docs",
-    icon: "images/docSheet.png",
-    link: "https://chat.quasar.dev",
-  },
-  {
-    title: "Settings",
-    icon: "images/settingsIcon.png",
-    link: "https://forum.quasar.dev",
-  },
-];
 
 export default defineComponent({
   name: "MainLayout",
@@ -101,7 +83,42 @@ export default defineComponent({
   },
   data(){
     return {
-      userName:"Not logged in!"
+      userName:"Not logged in!",
+      linksList:[
+        {
+          title: "Home",
+          icon: "images/homeIcon.png",
+          link: "https://quasar.dev",
+          onClick: () => {
+            this.$router.push("/");
+          }
+        },
+        {
+          title: "Services",
+          icon: "images/serverRack.png",
+          link: "https://github.com/quasarframework",
+          onClick: () => {
+            this.$router.push("/");
+          }
+        },
+        {
+          title: "Docs",
+          icon: "images/docSheet.png",
+          link: "https://chat.quasar.dev",
+          onClick: () => {
+            this.$router.push("/");
+          }
+        },
+        {
+          title: "Settings",
+          icon: "images/settingsIcon.png",
+          link: "https://forum.quasar.dev",
+          onClick: () => {
+            this.$router.push({name:'settings',params:{user:this.userData}});
+          }
+        },
+      ],
+      userData:null
     }
   },
   methods:{
@@ -124,6 +141,7 @@ export default defineComponent({
       .then(res => res.text())
       .then(data => {
         const resData = JSON.parse(data);
+        this.userData = data;
         this.userName = resData.firstName + " " + resData.lastName;
       })
     }
@@ -136,7 +154,6 @@ export default defineComponent({
     const leftDrawerOpen = ref(false);
 
     return {
-      essentialLinks: linksList,
       leftDrawerOpen,
       toggleLeftDrawer() {
         leftDrawerOpen.value = !leftDrawerOpen.value;
