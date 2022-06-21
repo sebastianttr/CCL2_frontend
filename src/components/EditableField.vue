@@ -32,6 +32,7 @@ export default {
   },
   methods:{
     save(){
+      this.onChange?.(this.model);
       this.isEditable = false;
     },
     edit(){
@@ -39,10 +40,7 @@ export default {
     }
   },
   watch:{
-    model(newValue,oldValue){
-      console.log(newValue);
-      this.onChange?.(newValue);
-    }
+
   },
   beforeMount(){
 

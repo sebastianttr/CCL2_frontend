@@ -47,7 +47,7 @@
               :options="nodeVerionsAvailable"
               label="Select version" />
 
-            <q-btn class="submitButton" label="Login" type="submit" color="primary"/>
+            <q-btn class="submitButton" rounded label="Create" type="submit" color="primary"/>
         </q-form>
       </q-page>
     </q-page-container>

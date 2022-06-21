@@ -1,5 +1,5 @@
 <template>
-  <div class="page">
+  <div class="pageIDE">
     <!--
       <editortab></editortab>
     -->
@@ -693,8 +693,7 @@ ul,
 }
 
 
-
-.page {
+.pageIDE {
   background-color: rgb(32, 32, 32);
   overflow:hidden;
 }

@@ -37,7 +37,9 @@ import { Cookies } from 'quasar';
 
 export default {
   name: 'IndexPage',
-  components:{"projectcard":ProjectCard},
+  components:{
+    "projectcard":ProjectCard,
+  },
   data(){
     return {
       services:[]

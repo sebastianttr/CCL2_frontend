@@ -10,7 +10,6 @@
           @click="toggleLeftDrawer">
           <q-img
             src="images/drawerbutton.png"
-            :ratio="16/9"
             spinner-color="primary"
             spinner-size="82px"
             width="32px"
@@ -60,7 +59,8 @@
                 color="black"
                 size="1em"
                 padding="0px"
-                class="q-mt-sm">
+                class="q-mt-sm"
+                @click="this.$router.push({name:'settings',params:{user:this.userData}})">
                 <p class="q-ml-sm q-mr-sm">Manage Account</p>
               </q-btn>
             </div>
@@ -112,6 +112,7 @@ export default defineComponent({
   data(){
     return {
       state: "stopped",
+      userData:null,
       userName:"Not logged in!",
       toolbarActions:[
         {
@@ -167,7 +168,7 @@ export default defineComponent({
           icon: "images/settingsIcon.png",
           link: "https://forum.quasar.dev",
           onClick: () => {
-            this.$router.push("/settings");
+            this.$router.push({name:'settings',params:{user:this.userData}});
           }
         },
       ]
@@ -193,6 +194,7 @@ export default defineComponent({
       .then(res => res.text())
       .then(data => {
         const resData = JSON.parse(data);
+        this.userData = data;
         this.userName = resData.firstName + " " + resData.lastName;
       })
     }

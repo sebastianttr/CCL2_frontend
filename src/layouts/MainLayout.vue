@@ -35,7 +35,13 @@
           <div class="full-width row wrap justify-between items-start">
             <div>
               <p id="userName">{{userName}}</p>
-              <q-btn outline color="black" size="1em" padding="0px" class="q-mt-sm">
+              <q-btn
+                outline
+                color="black"
+                size="1em"
+                padding="0px"
+                class="q-mt-sm"
+                @click="this.$router.push({name:'settings',params:{user:this.userData}})">
                 <p class="q-ml-sm q-mr-sm">Manage Account</p>
               </q-btn>
             </div>
