@@ -75,7 +75,7 @@ export default {
       let accessToken = Cookies.get("accessToken")
       if(accessToken){
         //get user
-        fetch("http://localhost:3000/services/create",{
+        fetch("https://brokrbackend.wiredless.io/services/create",{
           method:"POST",
           headers: {
             'Accept': 'application/json',

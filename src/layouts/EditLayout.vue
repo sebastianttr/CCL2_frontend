@@ -184,7 +184,7 @@ export default defineComponent({
     let accessToken = Cookies.get("accessToken")
     if(accessToken){
       //get user
-      fetch("http://localhost:3000/users/getUser",{
+      fetch("https://brokrbackend.wiredless.io/users/getUser",{
         headers: {
           'Accept': 'application/json',
           'Content-Type': 'application/json',

@@ -65,7 +65,7 @@
             val => val && val.length > 0 || 'Please type something',
             val => val && val.length > 8 || 'Password has to be at least 8 characters long'
           ]"
-          hint="Password">
+          hint="Password">brokrbackend.wiredless.io
           <template v-slot:append>
             <q-icon
               :name="isPwd ? 'visibility_off' : 'visibility'"
@@ -128,7 +128,7 @@ export default {
       let validationOK = this.validateUserInput();
 
       if(validationOK){
-        fetch("http://localhost:3000/users/register",
+        fetch("https://brokrbackend.wiredless.io/users/register",
           {
             headers: {
               'Accept': 'application/json',

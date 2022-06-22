@@ -225,7 +225,7 @@ export default {
     sendFileContent(path,content){
       let accessToken = Cookies.get("accessToken")
 
-      fetch("http://localhost:3000/services/fileContent?path=/" + path,{
+      fetch("https://brokrbackend.wiredless.io/services/fileContent?path=/" + path,{
         method: "post",
         headers:{
           'Accept': 'application/json',
@@ -243,7 +243,7 @@ export default {
     fetchFileContent(path,cb){
         let accessToken = Cookies.get("accessToken")
 
-        fetch("http://localhost:3000/services/fileContent?path=/" + path,{
+        fetch("https://brokrbackend.wiredless.io/services/fileContent?path=/" + path,{
           headers:{
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -309,7 +309,7 @@ export default {
       let accessToken = Cookies.get("accessToken")
 
       if(accessToken){
-        fetch(`http://localhost:3000/services/${this.service.ID}/getDirectoryTree`,{
+        fetch(`https://brokrbackend.wiredless.io/services/${this.service.ID}/getDirectoryTree`,{
           headers:{
             'Accept': 'application/json',
             'Content-Type': 'application/json',
@@ -318,6 +318,7 @@ export default {
         })
           .then(res => res.json())
           .then(json => {
+            //console.log("henlo: " + json)
             this.tree = json;
           })
           .catch(err => {
@@ -513,7 +514,7 @@ export default {
     initWebsocket(){
       let accessToken = Cookies.get("accessToken");
 
-      this.ws = new WebSocket("ws://localhost:4200");
+      this.ws = new WebSocket("wss://brokrbackend.wiredless.io/ws/");
 
       this.ws.onmessage = (e) => {
         this.writeToConsole(e.data);

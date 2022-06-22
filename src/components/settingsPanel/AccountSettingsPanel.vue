@@ -108,7 +108,7 @@ export default {
       // delete your account here!
       this.deleteAccountDialog = false;
       console.log("deleteing account!")
-      fetch("http://localhost:3000/users/deleteUser",{
+      fetch("https://brokrbackend.wiredless.io/users/deleteUser",{
         headers:{
           'Accept': 'application/json',
           'Content-Type': 'application/json',
